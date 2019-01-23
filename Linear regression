@@ -1,0 +1,26 @@
+import numpy as np
+x=np.linspace(-10,10,200)
+e=np.random.randn(200)*70
+m_2=np.random.randint(100)
+c_2=np.random.randint(100)
+y=m_2*x+c_2+e
+print(m_2,c_2)
+import matplotlib.pyplot as plt
+plt.scatter(x,y)
+m_hat=np.random.randint(100)
+c_hat=np.random.randint(100)
+lambda1=0.01
+for i in range(1000):
+    y_hat=m_hat*x+c_hat
+    error=y-m_hat*x-c_hat
+    err= np.sum(np.square(y-y_hat))/400
+    derr_dm = -(np.dot(error,x))/200
+    derr_dc = -(np.sum(error))/200
+    m_hat=m_hat-lambda1*derr_dm
+    c_hat=c_hat-lambda1*derr_dc
+print(m_hat)
+print(c_hat)
+y_hat=m_hat*x+c_hat
+plt.scatter(x,y)
+plt.plot(x,y_hat)
+plt.show()
