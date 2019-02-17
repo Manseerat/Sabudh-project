@@ -1,0 +1,71 @@
+from flask import Flask, jsonify, request
+import sqlalchemy as db
+import pandas as pd
+import hashlib
+from passlib.hash import sha512_crypt
+app = Flask(__name__)
+engine = db.create_engine("mysql://root:@localhost:3306/agriculture_data")
+connection = engine.connect()
+metadata = db.MetaData()
+users_data = db.Table('users_data' ,metadata, autoload=True ,autoload_with=engine)
+#insert command
+@app.route('/create',methods=['POST'])
+def post():
+    user=request.get_json()
+    un=user["Username"]
+    pw=user["Password"]
+    seed = "st98"
+    try:
+        ins_record = users_data.insert().values(Username=un,Password=sha512_crypt.encrypt(pw+seed))
+        Result = connection.execute(ins_record)
+        return jsonify({"username created":user["Username"]})
+    except:
+        return jsonify({"username already exists re-enter another username":user["Username"]})
+#update command
+@app.route('/update',methods=['PUT'])
+def update():
+    user=request.get_json()
+    un=user["Username"]
+    pw=user["Password"]
+    new_un=user["new_username"]
+    new_pw=user["new_password"]
+    seed = "st98"
+    #Result = engine.execute("Select password from users_data where users_data.Username='%s'"%(un))
+    #Record = Result.fetchall()
+    #print(Record)
+    new_pw = sha512_crypt.encrypt(new_pw+seed)
+   # print(Record)
+    
+#    if len(Record)==1:
+ #      if Record[0][1]==un:
+    res = engine.execute("Update users_data set Username='%s',Password='%s' where Username='%s'"%(new_un,new_pw,un))
+             
+             
+             #res = engine.execute("Update users_data set Username='%s',Password='%s' where Username='%s' and Password='%s'"%(new_un,new_pw,un,pw))
+                #return jsonify({"username updated new username":user["new_username"]})
+             
+             
+             
+    return jsonify({"username updated new username":user["new_username"]})
+      # elif len(Record)==0:
+       #      return jsonify({"invalid username enter again":user["Username"]})
+    
+#delete command
+@app.route('/delete',methods=['DELETE'])
+def delete():
+    user=request.get_json()
+    un=user["Username"]
+    pw=user["Password"]
+    Result = engine.execute("Select * from users_data where users_data.Username='%s' and users_data.Password='%s'"%(un,pw))
+    Record = Result.fetchall()
+    print(Record)
+    if len(Record)==1:
+            if Record[0][1]==un:
+                res = engine.execute("Delete from users_data where users_data.Username='%s'"%(un))
+                return jsonify({"username deleted":user["Username"]})
+    elif len(Record)==0:
+              return jsonify({"invalid username or password":user["Username"]})
+if __name__=='__main__':
+    app.run(port=2010)     
+    
+
